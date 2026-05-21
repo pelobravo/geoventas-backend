@@ -42,4 +42,7 @@ def limpiar_ranking_vendedores(file):
     # Resetear índice
     df = df.reset_index(drop=True)
 
+    # Rellenar valores nulos con string vacío
+    df = df.fillna("")
+
     return df
