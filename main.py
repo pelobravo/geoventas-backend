@@ -1,5 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from database import engine, Base
+from database import SessionLocal
+from models import Cliente
 import models
 import pandas as pd
 
@@ -37,4 +39,32 @@ async def upload_excel(file: UploadFile = File(...)):
     return {
         "columnas": list(df.columns),
         "filas": len(df)
+    }
+
+@app.post("/importar-clientes")
+async def importar_clientes(file: UploadFile = File(...)):
+    df = pd.read_excel(file.file)
+
+    db = SessionLocal()
+
+    for _, row in df.iterrows():
+        cliente = Cliente(
+            codigo=str(row.get("codigo", "")),
+            nombre=str(row.get("nombre", "")),
+            direccion=str(row.get("direccion", "")),
+            telefono=str(row.get("telefono", "")),
+            vendedor=str(row.get("vendedor", "")),
+            frecuencia=str(row.get("frecuencia", "")),
+            empresa=str(row.get("empresa", "")),
+            latitud=0,
+            longitud=0
+        )
+        db.add(cliente)
+
+    db.commit()
+    db.close()
+
+    return {
+        "mensaje": "Clientes importados correctamente",
+        "cantidad": len(df)
     }
