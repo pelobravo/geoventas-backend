@@ -4,6 +4,7 @@ from database import SessionLocal
 from models import Cliente
 import models
 import pandas as pd
+from excel_cleaner import limpiar_ranking_vendedores
 
 Base.metadata.create_all(bind=engine)
 
@@ -67,4 +68,14 @@ async def importar_clientes(file: UploadFile = File(...)):
     return {
         "mensaje": "Clientes importados correctamente",
         "cantidad": len(df)
+    }
+
+@app.post("/ranking-vendedores")
+async def ranking_vendedores(file: UploadFile = File(...)):
+    df = limpiar_ranking_vendedores(file.file)
+
+    return {
+        "columnas": list(df.columns),
+        "filas": len(df),
+        "preview": df.head().to_dict(orient="records")
     }
