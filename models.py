@@ -11,4 +11,7 @@ class Cliente(Base):
     telefono = Column(String)
     latitud = Column(Float)
     longitud = Column(Float)
+    vendedor = Column(String)
+    frecuencia = Column(String)
+    empresa = Column(String)
     activo = Column(Boolean, default=True)
