@@ -36,4 +36,6 @@ class RankingVendedor(Base):
     drop_size_neto = Column(Float)
     drop_size_cajas = Column(Float)
 
+    empresa = Column(String)
+
     fecha_carga = Column(DateTime, default=datetime.utcnow)
