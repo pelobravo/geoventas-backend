@@ -5,6 +5,7 @@ from models import Cliente, RankingVendedor
 import models
 import pandas as pd
 from excel_cleaner import limpiar_ranking_vendedores
+from sqlalchemy import func
 
 Base.metadata.create_all(bind=engine)
 
@@ -109,4 +110,43 @@ async def guardar_ranking_vendedores(file: UploadFile = File(...)):
     return {
         "mensaje": "Ranking guardado correctamente",
         "registros_guardados": registros_guardados
+    }
+
+@app.get("/dashboard-general")
+def dashboard_general():
+    db = SessionLocal()
+
+    total_vendedores = db.query(RankingVendedor).count()
+
+    facturacion_total = db.query(
+        func.sum(RankingVendedor.total)
+    ).scalar()
+
+    activacion_promedio = db.query(
+        func.avg(RankingVendedor.activacion)
+    ).scalar()
+
+    cartera_promedio = db.query(
+        func.avg(RankingVendedor.cartera)
+    ).scalar()
+
+    drop_size_promedio = db.query(
+        func.avg(RankingVendedor.drop_size_cajas)
+    ).scalar()
+
+    top_vendedor = db.query(
+        RankingVendedor
+    ).order_by(
+        RankingVendedor.total.desc()
+    ).first()
+
+    db.close()
+
+    return {
+        "total_vendedores": total_vendedores,
+        "facturacion_total": round(facturacion_total or 0, 2),
+        "activacion_promedio": round(activacion_promedio or 0, 2),
+        "cartera_promedio": round(cartera_promedio or 0, 2),
+        "drop_size_promedio": round(drop_size_promedio or 0, 2),
+        "top_vendedor": top_vendedor.vendedor if top_vendedor else "N/A"
     }
