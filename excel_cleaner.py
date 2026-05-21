@@ -39,6 +39,16 @@ def limpiar_ranking_vendedores(file):
         for col in df.columns
     ]
 
+    # Eliminar columnas "Unnamed"
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+
+    # Renombrar columnas según ejemplo
+    df = df.rename(columns={
+        "Facturas": "facturas_bs",
+        "Facturas.1": "facturas_detal",
+        "Facturas.2": "facturas_autoventa"
+    })
+
     # Resetear índice
     df = df.reset_index(drop=True)
 
