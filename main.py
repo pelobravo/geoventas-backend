@@ -82,34 +82,54 @@ async def ranking_vendedores(file: UploadFile = File(...)):
     }
 
 @app.post("/guardar-ranking-vendedores")
-async def guardar_ranking_vendedores(file: UploadFile = File(...)):
-    df = limpiar_ranking_vendedores(file.file)
-
+async def guardar_ranking_vendedores(
+    empresa: str,
+    file: UploadFile = File(...)
+):
     db = SessionLocal()
 
-    registros_guardados = 0
+    df = limpiar_ranking_vendedores(file.file)
+
+    registros = 0
 
     for _, row in df.iterrows():
-        vendedor = RankingVendedor(
-            vendedor=str(row.get("Vendedor", "")),
-            cartera=float(row.get("Cartera", 0) or 0),
-            activacion=float(row.get("Activación", 0) or 0),
-            facturas_bs=float(row.get("Facturas", 0) or 0),
-            pedidos_fact=float(row.get("Ped. Fact.", 0) or 0),
-            notas=float(row.get("Notas", 0) or 0),
-            total=float(row.get("Total", 0) or 0),
-            drop_size_neto=float(row.get("Drop Size Div. Neto", 0) or 0),
-            drop_size_cajas=float(row.get("Drop Size Cajas", 0) or 0),
+        vendedor = str(row.get("Vendedor", ""))
+
+        cartera = float(row.get("Cartera", 0) or 0)
+        activacion = float(row.get("Activación", 0) or 0)
+
+        facturas_bs = float(row.get("Facturas", 0) or 0)
+        pedidos_fact = float(row.get("Ped. Fact.", 0) or 0)
+
+        notas = float(row.get("Notas", 0) or 0)
+        total = float(row.get("Total", 0) or 0)
+
+        drop_size_neto = float(row.get("Drop Size Div. Neto", 0) or 0)
+        drop_size_cajas = float(row.get("Drop Size Cajas", 0) or 0)
+
+        nuevo = RankingVendedor(
+            empresa=empresa,
+            vendedor=vendedor,
+            cartera=cartera,
+            activacion=activacion,
+            facturas_bs=facturas_bs,
+            pedidos_fact=pedidos_fact,
+            notas=notas,
+            total=total,
+            drop_size_neto=drop_size_neto,
+            drop_size_cajas=drop_size_cajas
         )
-        db.add(vendedor)
-        registros_guardados += 1
+
+        db.add(nuevo)
+        registros += 1
 
     db.commit()
     db.close()
 
     return {
-        "mensaje": "Ranking guardado correctamente",
-        "registros_guardados": registros_guardados
+        "mensaje": "Datos guardados correctamente",
+        "empresa": empresa,
+        "registros_guardados": registros
     }
 
 @app.get("/dashboard-general")
