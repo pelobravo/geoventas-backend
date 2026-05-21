@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from database import engine, Base
 from database import SessionLocal
-from models import Cliente
+from models import Cliente, RankingVendedor
 import models
 import pandas as pd
 from excel_cleaner import limpiar_ranking_vendedores
@@ -78,4 +78,35 @@ async def ranking_vendedores(file: UploadFile = File(...)):
         "columnas": list(df.columns),
         "filas": len(df),
         "preview": df.head().to_dict(orient="records")
+    }
+
+@app.post("/guardar-ranking-vendedores")
+async def guardar_ranking_vendedores(file: UploadFile = File(...)):
+    df = limpiar_ranking_vendedores(file.file)
+
+    db = SessionLocal()
+
+    registros_guardados = 0
+
+    for _, row in df.iterrows():
+        vendedor = RankingVendedor(
+            vendedor=str(row.get("Vendedor", "")),
+            cartera=float(row.get("Cartera", 0) or 0),
+            activacion=float(row.get("Activación", 0) or 0),
+            facturas_bs=float(row.get("Facturas", 0) or 0),
+            pedidos_fact=float(row.get("Ped. Fact.", 0) or 0),
+            notas=float(row.get("Notas", 0) or 0),
+            total=float(row.get("Total", 0) or 0),
+            drop_size_neto=float(row.get("Drop Size Div. Neto", 0) or 0),
+            drop_size_cajas=float(row.get("Drop Size Cajas", 0) or 0),
+        )
+        db.add(vendedor)
+        registros_guardados += 1
+
+    db.commit()
+    db.close()
+
+    return {
+        "mensaje": "Ranking guardado correctamente",
+        "registros_guardados": registros_guardados
     }
