@@ -136,37 +136,59 @@ async def guardar_ranking_vendedores(
 def dashboard_general():
     db = SessionLocal()
 
-    total_vendedores = db.query(RankingVendedor).count()
+    vendedores = db.query(RankingVendedor).all()
 
-    facturacion_total = db.query(
-        func.sum(RankingVendedor.total)
-    ).scalar()
+    total_vendedores = len(vendedores)
 
-    activacion_promedio = db.query(
-        func.avg(RankingVendedor.activacion)
-    ).scalar()
+    facturacion_total = sum(v.total or 0 for v in vendedores)
 
-    cartera_promedio = db.query(
-        func.avg(RankingVendedor.cartera)
-    ).scalar()
+    activacion_promedio = round(
+        sum(v.activacion or 0 for v in vendedores) / total_vendedores,
+        2
+    ) if total_vendedores > 0 else 0
 
-    drop_size_promedio = db.query(
-        func.avg(RankingVendedor.drop_size_cajas)
-    ).scalar()
+    cartera_promedio = round(
+        sum(v.cartera or 0 for v in vendedores) / total_vendedores,
+        2
+    ) if total_vendedores > 0 else 0
 
-    top_vendedor = db.query(
-        RankingVendedor
-    ).order_by(
-        RankingVendedor.total.desc()
-    ).first()
+    drop_size_promedio = round(
+        sum(v.drop_size_cajas or 0 for v in vendedores) / total_vendedores,
+        2
+    ) if total_vendedores > 0 else 0
+
+    top_vendedor = max(
+        vendedores,
+        key=lambda x: x.total or 0
+    ).vendedor if vendedores else "N/A"
+
+    empresas = {}
+
+    for v in vendedores:
+        if v.empresa not in empresas:
+            empresas[v.empresa] = {
+                "empresa": v.empresa,
+                "facturacion": 0,
+                "vendedores": 0,
+                "top_vendedor": "",
+                "mejor_total": 0
+            }
+
+        empresas[v.empresa]["facturacion"] += v.total or 0
+        empresas[v.empresa]["vendedores"] += 1
+
+        if (v.total or 0) > empresas[v.empresa]["mejor_total"]:
+            empresas[v.empresa]["mejor_total"] = v.total or 0
+            empresas[v.empresa]["top_vendedor"] = v.vendedor
 
     db.close()
 
     return {
         "total_vendedores": total_vendedores,
-        "facturacion_total": round(facturacion_total or 0, 2),
-        "activacion_promedio": round(activacion_promedio or 0, 2),
-        "cartera_promedio": round(cartera_promedio or 0, 2),
-        "drop_size_promedio": round(drop_size_promedio or 0, 2),
-        "top_vendedor": top_vendedor.vendedor if top_vendedor else "N/A"
+        "facturacion_total": facturacion_total,
+        "activacion_promedio": activacion_promedio,
+        "cartera_promedio": cartera_promedio,
+        "drop_size_promedio": drop_size_promedio,
+        "top_vendedor_global": top_vendedor,
+        "empresas": list(empresas.values())
     }
