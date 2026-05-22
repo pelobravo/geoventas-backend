@@ -52,7 +52,20 @@ def limpiar_ranking_vendedores(file):
     # Resetear índice
     df = df.reset_index(drop=True)
 
-    # Rellenar valores nulos con string vacío
-    df = df.fillna("")
+    # Rellenar valores nulos con 0
+    df = df.fillna(0)
+
+    # eliminar filas vacías o comentarios
+    df = df[
+        df["Vendedor"].notna()
+    ]
+
+    df = df[
+        ~df["Vendedor"].astype(str).str.contains(
+            "total de cartera",
+            case=False,
+            na=False
+        )
+    ]
 
     return df
