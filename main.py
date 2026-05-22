@@ -192,3 +192,57 @@ def dashboard_general():
         "top_vendedor_global": top_vendedor,
         "empresas": list(empresas.values())
     }
+
+@app.get("/dashboard-resumen")
+def dashboard_resumen():
+    db = SessionLocal()
+
+    rankings = db.query(models.RankingVendedor).all()
+
+    empresas = {}
+
+    for r in rankings:
+        if r.empresa not in empresas:
+            empresas[r.empresa] = {
+                "empresa": r.empresa,
+                "total_vendedores": 0,
+                "facturacion_total": 0,
+                "activacion_total": 0,
+                "cartera_total": 0,
+                "top_vendedor": "",
+                "top_facturacion": 0,
+                "vendedores": []
+            }
+
+        empresas[r.empresa]["total_vendedores"] += 1
+        empresas[r.empresa]["facturacion_total"] += r.pedidos_fact or 0
+        empresas[r.empresa]["activacion_total"] += r.activacion or 0
+        empresas[r.empresa]["cartera_total"] += r.cartera or 0
+
+        empresas[r.empresa]["vendedores"].append({
+            "vendedor": r.vendedor,
+            "facturacion": r.pedidos_fact,
+            "activacion": r.activacion,
+            "cartera": r.cartera
+        })
+
+        if (r.pedidos_fact or 0) > empresas[r.empresa]["top_facturacion"]:
+            empresas[r.empresa]["top_facturacion"] = r.pedidos_fact or 0
+            empresas[r.empresa]["top_vendedor"] = r.vendedor
+
+    resultado = []
+
+    for emp in empresas.values():
+        resultado.append({
+            "empresa": emp["empresa"],
+            "total_vendedores": emp["total_vendedores"],
+            "facturacion_total": emp["facturacion_total"],
+            "activacion_promedio": round(emp["activacion_total"] / emp["total_vendedores"], 2) if emp["total_vendedores"] > 0 else 0,
+            "cartera_promedio": round(emp["cartera_total"] / emp["total_vendedores"], 2) if emp["total_vendedores"] > 0 else 0,
+            "top_vendedor": emp["top_vendedor"],
+            "vendedores": emp["vendedores"]
+        })
+
+    db.close()
+
+    return resultado
