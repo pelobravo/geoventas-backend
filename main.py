@@ -9,20 +9,6 @@ from sqlalchemy import func
 
 Base.metadata.create_all(bind=engine)
 
-from sqlalchemy import text
-from database import SessionLocal
-
-db = SessionLocal()
-
-try:
-    db.execute(text("DROP TABLE ranking_vendedores"))
-    db.commit()
-    print("TABLA ELIMINADA")
-except Exception as e:
-    print(e)
-
-db.close()
-
 app = FastAPI()
 
 @app.get("/")
