@@ -93,6 +93,8 @@ async def ranking_vendedores(file: UploadFile = File(...)):
 @app.post("/guardar-ranking-vendedores")
 async def guardar_ranking_vendedores(
     empresa: str,
+    mes: str,
+    anio: int,
     file: UploadFile = File(...)
 ):
     db = SessionLocal()
@@ -118,6 +120,8 @@ async def guardar_ranking_vendedores(
 
         nuevo = RankingVendedor(
             empresa=empresa,
+            mes=mes,
+            anio=anio,
             vendedor=vendedor,
             cartera=cartera,
             activacion=activacion,
@@ -138,6 +142,8 @@ async def guardar_ranking_vendedores(
     return {
         "mensaje": "Datos guardados correctamente",
         "empresa": empresa,
+        "mes": mes,
+        "anio": anio,
         "registros_guardados": registros
     }
 
