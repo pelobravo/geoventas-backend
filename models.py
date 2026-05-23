@@ -37,5 +37,7 @@ class RankingVendedor(Base):
     drop_size_cajas = Column(Float)
 
     empresa = Column(String)
+    mes = Column(String)
+    anio = Column(Integer)
 
     fecha_carga = Column(DateTime, default=datetime.utcnow)
