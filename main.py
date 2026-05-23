@@ -223,6 +223,8 @@ def dashboard_resumen():
         if r.empresa not in empresas:
             empresas[r.empresa] = {
                 "empresa": r.empresa,
+                "mes": r.mes,
+                "anio": r.anio,
                 "total_vendedores": 0,
                 "facturacion_total": 0,
                 "activacion_total": 0,
@@ -253,6 +255,8 @@ def dashboard_resumen():
     for emp in empresas.values():
         resultado.append({
             "empresa": emp["empresa"],
+            "mes": emp["mes"],
+            "anio": emp["anio"],
             "total_vendedores": emp["total_vendedores"],
             "facturacion_total": emp["facturacion_total"],
             "activacion_promedio": round(emp["activacion_total"] / emp["total_vendedores"], 2) if emp["total_vendedores"] > 0 else 0,
