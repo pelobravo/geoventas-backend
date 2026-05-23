@@ -8,7 +8,10 @@ import pandas as pd
 from excel_cleaner import limpiar_ranking_vendedores
 from sqlalchemy import func
 
+import models
+
 Base.metadata.create_all(bind=engine)
+print("CREANDO TABLAS...")
 
 app = FastAPI()
 
